@@ -227,7 +227,7 @@
       <section id="loading" role="status" aria-busy="true">
         <div class="spinner" aria-hidden="true"></div>
         <h1>Loading application…</h1>
-        <p class="dim">Simulating startup delay<span id="info"></span></p>
+        <p class="dim">Simulating startup delay</p>
 
         <div class="showcase" aria-hidden="true">
           <div class="box">
@@ -283,7 +283,6 @@
       <section id="content" aria-busy="false">
         <h1>Application Loaded</h1>
         <p class="dim">This is the static loaded state.</p>
-        <p class="badge" id="loadedNote"></p>
       </section>
     </main>
 
@@ -301,21 +300,11 @@
 
         const loading = document.getElementById('loading');
         const content = document.getElementById('content');
-        const info = document.getElementById('info');
-        const loadedNote = document.getElementById('loadedNote');
         const durationInput = document.getElementById('durationInput');
         const durationForm = document.getElementById('durationForm');
         const quickLinks = document.getElementById('quickLinks');
 
-        // Show info about the configured duration, if any
-        if (raw !== null) {
-          info.textContent = ` for ${duration.toLocaleString()} ms`;
-        }
-
-        // Populate input with current duration
-        if (durationInput) {
-          durationInput.value = String(duration);
-        }
+        // Form field starts empty on load
 
         // Handle form submit to set new duration param
         if (durationForm && durationInput) {
@@ -343,7 +332,6 @@
         function showLoaded() {
           loading.classList.add('hidden');
           content.style.display = 'grid';
-          loadedNote.textContent = `Simulated delay: ${duration.toLocaleString()} ms`;
         }
 
         if (duration === 0) {
