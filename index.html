@@ -202,10 +202,28 @@
         font-size: 0.8rem;
         color: var(--muted);
       }
+
+      /* Controls */
+      #controls { display: grid; gap: 8px; justify-items: center; }
+      .controls-form { display: inline-grid; grid-auto-flow: column; gap: 8px; align-items: center; }
+      .controls-form input { width: 140px; padding: 6px 8px; border-radius: 8px; border: 1px solid rgba(226,232,240,0.25); background: rgba(2,6,23,0.25); color: var(--fg); }
+      .controls-form button { padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(226,232,240,0.25); background: rgba(2,6,23,0.25); color: var(--fg); cursor: pointer; }
+      #quickLinks { display: flex; gap: 8px; flex-wrap: wrap; }
+      #quickLinks a { color: var(--fg); opacity: 0.85; text-decoration: none; border: 1px solid rgba(226,232,240,0.18); border-radius: 999px; padding: 4px 8px; }
+      #quickLinks a:hover { opacity: 1; border-color: rgba(226,232,240,0.35); }
     </style>
   </head>
   <body>
     <main class="wrap" aria-live="polite">
+      <section id="controls" aria-label="Controls">
+        <form id="durationForm" class="controls-form">
+          <label for="durationInput" class="dim">Duration (ms)</label>
+          <input id="durationInput" name="duration" type="number" min="0" step="100" inputmode="numeric" />
+          <button type="submit">Set</button>
+        </form>
+        <div class="dim">Quick links:</div>
+        <div id="quickLinks" aria-label="Preset durations"></div>
+      </section>
       <section id="loading" role="status" aria-busy="true">
         <div class="spinner" aria-hidden="true"></div>
         <h1>Loading application…</h1>
@@ -285,10 +303,41 @@
         const content = document.getElementById('content');
         const info = document.getElementById('info');
         const loadedNote = document.getElementById('loadedNote');
+        const durationInput = document.getElementById('durationInput');
+        const durationForm = document.getElementById('durationForm');
+        const quickLinks = document.getElementById('quickLinks');
 
         // Show info about the configured duration, if any
         if (raw !== null) {
           info.textContent = ` for ${duration.toLocaleString()} ms`;
+        }
+
+        // Populate input with current duration
+        if (durationInput) {
+          durationInput.value = String(duration);
+        }
+
+        // Handle form submit to set new duration param
+        if (durationForm && durationInput) {
+          durationForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const next = Number.parseInt(durationInput.value, 10);
+            const ms = Number.isFinite(next) && next >= 0 ? next : 0;
+            const url = new URL(window.location.href);
+            url.searchParams.set('duration', String(ms));
+            window.location.href = url.pathname + url.search;
+          });
+        }
+
+        // Build quick links for common durations
+        if (quickLinks) {
+          const presets = [100, 250, 500, 1000, 2500, 5000, 10000, 15000, 20000, 30000];
+          presets.forEach((ms) => {
+            const a = document.createElement('a');
+            a.href = `?duration=${ms}`;
+            a.textContent = `${ms.toLocaleString()} ms`;
+            quickLinks.appendChild(a);
+          });
         }
 
         function showLoaded() {
