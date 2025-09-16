@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>App Loading Simulator</title>
+    <style>
+      :root {
+        --bg: #0f172a; /* slate-900 */
+        --fg: #e2e8f0; /* slate-200 */
+        --muted: #94a3b8; /* slate-400 */
+        --accent: #38bdf8; /* sky-400 */
+        --accent-2: #f472b6; /* pink-400 */
+      }
+
+      html, body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: radial-gradient(1200px 800px at 10% 10%, rgba(56, 189, 248, 0.08), transparent),
+                    radial-gradient(1200px 800px at 90% 90%, rgba(244, 114, 182, 0.08), transparent),
+                    var(--bg);
+        color: var(--fg);
+        display: grid;
+        place-items: center;
+      }
+
+      .wrap {
+        display: grid;
+        gap: 16px;
+        justify-items: center;
+        text-align: center;
+        padding: 32px;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        margin: 0;
+      }
+
+      p { margin: 0; color: var(--muted); }
+
+      /* Loading view */
+      #loading { display: grid; gap: 16px; justify-items: center; }
+
+      /* Showcase grid for multiple indicators */
+      .showcase { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 16px; 
+        width: min(1000px, 92vw);
+        margin-top: 8px;
+      }
+      .box { 
+        border: 1px solid rgba(226, 232, 240, 0.14); 
+        border-radius: 12px; 
+        padding: 12px; 
+        display: grid; 
+        gap: 8px; 
+        justify-items: center; 
+        background: rgba(2, 6, 23, 0.2);
+      }
+      .label { font-size: 0.8rem; color: var(--muted); }
+
+      .spinner {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 6px solid rgba(226, 232, 240, 0.2);
+        border-top-color: var(--accent);
+        border-right-color: var(--accent-2);
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* 1) Dual ring */
+      .dual-ring { display: inline-block; width: 56px; height: 56px; }
+      .dual-ring::after {
+        content: "";
+        display: block;
+        width: 44px; height: 44px; margin: 6px;
+        border-radius: 50%;
+        border: 6px solid transparent;
+        border-top-color: var(--accent);
+        border-right-color: var(--accent-2);
+        animation: spin 1s linear infinite;
+      }
+
+      /* 2) Bouncing dots */
+      .dots { display: inline-flex; gap: 8px; align-items: flex-end; height: 20px; }
+      .dots > div {
+        width: 10px; height: 10px; border-radius: 50%;
+        background: var(--fg);
+        animation: dots 0.9s infinite ease-in-out both;
+      }
+      .dots > div:nth-child(1) { animation-delay: 0s; }
+      .dots > div:nth-child(2) { animation-delay: 0.15s; }
+      .dots > div:nth-child(3) { animation-delay: 0.3s; }
+      @keyframes dots {
+        0%, 80%, 100% { transform: translateY(0) scale(0.8); opacity: 0.6; }
+        40% { transform: translateY(-10px) scale(1); opacity: 1; }
+      }
+
+      /* 3) Pulse */
+      .pulse { width: 56px; height: 56px; border-radius: 50%; background: var(--accent); opacity: 0.6; animation: pulse 1.5s infinite; }
+      @keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56,189,248,0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 18px rgba(56,189,248,0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56,189,248,0); }
+      }
+
+      /* 4) Indeterminate bar */
+      .bar { position: relative; width: 120px; height: 8px; border-radius: 999px; background: rgba(226,232,240,0.18); overflow: hidden; }
+      .bar::before {
+        content: ""; position: absolute; inset: 0; width: 40%; left: -40%;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        animation: bar 1.2s infinite;
+      }
+      @keyframes bar { to { left: 100%; } }
+
+      /* 5) Ripple */
+      .ripple { position: relative; width: 56px; height: 56px; }
+      .ripple div { position: absolute; border: 4px solid var(--accent); opacity: 1; border-radius: 50%; animation: ripple 1.5s cubic-bezier(0,0.2,0.8,1) infinite; }
+      .ripple div:nth-child(2) { border-color: var(--accent-2); animation-delay: -0.75s; }
+      @keyframes ripple {
+        0% { top: 24px; left: 24px; width: 0; height: 0; opacity: 1; }
+        100% { top: -2px; left: -2px; width: 56px; height: 56px; opacity: 0; }
+      }
+
+      /* 6) Grid pulse */
+      .grid { width: 56px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+      .grid div { width: 16px; height: 16px; background: var(--accent); animation: grid 1.4s infinite ease-in-out; }
+      .grid div:nth-child(odd) { background: var(--accent-2); }
+      .grid div:nth-child(1) { animation-delay: 0.0s; }
+      .grid div:nth-child(2) { animation-delay: 0.1s; }
+      .grid div:nth-child(3) { animation-delay: 0.2s; }
+      .grid div:nth-child(4) { animation-delay: 0.1s; }
+      .grid div:nth-child(5) { animation-delay: 0.2s; }
+      .grid div:nth-child(6) { animation-delay: 0.3s; }
+      .grid div:nth-child(7) { animation-delay: 0.2s; }
+      .grid div:nth-child(8) { animation-delay: 0.3s; }
+      .grid div:nth-child(9) { animation-delay: 0.4s; }
+      @keyframes grid { 0%, 100% { transform: scale(0.7); opacity: 0.6; } 50% { transform: scale(1); opacity: 1; } }
+
+      /* 7) Wave bars */
+      .wave { display: inline-flex; align-items: flex-end; gap: 4px; height: 40px; }
+      .wave div { width: 6px; height: 12px; background: var(--accent); animation: wave 1.2s infinite ease-in-out; border-radius: 3px; }
+      .wave div:nth-child(2) { animation-delay: 0.1s; }
+      .wave div:nth-child(3) { animation-delay: 0.2s; }
+      .wave div:nth-child(4) { animation-delay: 0.3s; }
+      .wave div:nth-child(5) { animation-delay: 0.4s; }
+      @keyframes wave { 0%, 40%, 100% { height: 12px; opacity: 0.7; } 20% { height: 38px; opacity: 1; } }
+
+      /* 8) Roller dots */
+      .roller { display: inline-block; position: relative; width: 56px; height: 56px; }
+      .roller div { animation: roller 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite; transform-origin: 28px 28px; }
+      .roller div::after { content: " "; display: block; position: absolute; width: 6px; height: 6px; border-radius: 50%; background: var(--fg); margin: -3px 0 0 -3px; }
+      .roller div:nth-child(1) { animation-delay: -0.036s; }
+      .roller div:nth-child(1)::after { top: 46px; left: 46px; }
+      .roller div:nth-child(2) { animation-delay: -0.072s; }
+      .roller div:nth-child(2)::after { top: 50px; left: 41px; }
+      .roller div:nth-child(3) { animation-delay: -0.108s; }
+      .roller div:nth-child(3)::after { top: 54px; left: 32px; }
+      .roller div:nth-child(4) { animation-delay: -0.144s; }
+      .roller div:nth-child(4)::after { top: 50px; left: 23px; }
+      .roller div:nth-child(5) { animation-delay: -0.18s; }
+      .roller div:nth-child(5)::after { top: 46px; left: 16px; }
+      .roller div:nth-child(6) { animation-delay: -0.216s; }
+      .roller div:nth-child(6)::after { top: 41px; left: 10px; }
+      .roller div:nth-child(7) { animation-delay: -0.252s; }
+      .roller div:nth-child(7)::after { top: 32px; left: 6px; }
+      .roller div:nth-child(8) { animation-delay: -0.288s; }
+      .roller div:nth-child(8)::after { top: 23px; left: 10px; }
+      @keyframes roller { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+      /* 9) Hourglass (ring variant) */
+      .hourglass { width: 56px; height: 56px; border-radius: 50%; border: 6px solid rgba(226,232,240,0.2); border-top-color: var(--accent); border-bottom-color: var(--accent-2); animation: hourglass 1.2s linear infinite; }
+      @keyframes hourglass { 0% { transform: rotate(0deg);} 50% { transform: rotate(180deg);} 100% { transform: rotate(360deg);} }
+
+      /* 10) Flip square */
+      .flip { width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); animation: flip 1.2s infinite; }
+      @keyframes flip {
+        0% { transform: perspective(100px) rotateX(0) rotateY(0); }
+        50% { transform: perspective(100px) rotateX(-180deg) rotateY(0); }
+        100% { transform: perspective(100px) rotateX(-180deg) rotateY(-180deg); }
+      }
+
+      /* Loaded (static) view */
+      #content { display: none; }
+
+      /* Utility */
+      .hidden { display: none !important; }
+      .dim { color: var(--muted); font-size: 0.95rem; }
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border: 1px solid rgba(226, 232, 240, 0.2);
+        border-radius: 999px;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap" aria-live="polite">
+      <section id="loading" role="status" aria-busy="true">
+        <div class="spinner" aria-hidden="true"></div>
+        <h1>Loading application…</h1>
+        <p class="dim">Simulating startup delay<span id="info"></span></p>
+
+        <div class="showcase" aria-hidden="true">
+          <div class="box">
+            <div class="dual-ring"></div>
+            <div class="label">Dual Ring</div>
+          </div>
+          <div class="box">
+            <div class="dots"><div></div><div></div><div></div></div>
+            <div class="label">Bouncing Dots</div>
+          </div>
+          <div class="box">
+            <div class="pulse"></div>
+            <div class="label">Pulse</div>
+          </div>
+          <div class="box">
+            <div class="bar"></div>
+            <div class="label">Indeterminate Bar</div>
+          </div>
+          <div class="box">
+            <div class="ripple"><div></div><div></div></div>
+            <div class="label">Ripple</div>
+          </div>
+          <div class="box">
+            <div class="grid">
+              <div></div><div></div><div></div>
+              <div></div><div></div><div></div>
+              <div></div><div></div><div></div>
+            </div>
+            <div class="label">Grid Pulse</div>
+          </div>
+          <div class="box">
+            <div class="wave"><div></div><div></div><div></div><div></div><div></div></div>
+            <div class="label">Wave Bars</div>
+          </div>
+          <div class="box">
+            <div class="roller">
+              <div></div><div></div><div></div><div></div>
+              <div></div><div></div><div></div><div></div>
+            </div>
+            <div class="label">Roller Dots</div>
+          </div>
+          <div class="box">
+            <div class="hourglass"></div>
+            <div class="label">Hourglass</div>
+          </div>
+          <div class="box">
+            <div class="flip"></div>
+            <div class="label">Flip</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="content" aria-busy="false">
+        <h1>Application Loaded</h1>
+        <p class="dim">This is the static loaded state.</p>
+        <p class="badge" id="loadedNote"></p>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        const raw = params.get('duration');
+
+        // Parse duration in milliseconds; default to 0 if absent/invalid
+        let duration = Number.parseInt(raw, 10);
+        if (!Number.isFinite(duration) || duration < 0) duration = 0;
+        // Hard cap to avoid excessively long waits in case of mistakes
+        const MAX_MS = 10 * 60 * 1000; // 10 minutes
+        if (duration > MAX_MS) duration = MAX_MS;
+
+        const loading = document.getElementById('loading');
+        const content = document.getElementById('content');
+        const info = document.getElementById('info');
+        const loadedNote = document.getElementById('loadedNote');
+
+        // Show info about the configured duration, if any
+        if (raw !== null) {
+          info.textContent = ` for ${duration.toLocaleString()} ms`;
+        }
+
+        function showLoaded() {
+          loading.classList.add('hidden');
+          content.style.display = 'grid';
+          loadedNote.textContent = `Simulated delay: ${duration.toLocaleString()} ms`;
+        }
+
+        if (duration === 0) {
+          showLoaded();
+        } else {
+          setTimeout(showLoaded, duration);
+        }
+      })();
+    </script>
+  </body>
+  </html>
